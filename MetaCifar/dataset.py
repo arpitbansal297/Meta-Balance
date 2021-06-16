@@ -156,12 +156,6 @@ def get_loaders(args):
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
 
-    transform_test = transforms.Compose([
-        transforms.RandomCrop(28),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
-
     root = './root_' + args.dataset_type + '/'
     root_test = './root_test_' + args.dataset_type + '/'
 

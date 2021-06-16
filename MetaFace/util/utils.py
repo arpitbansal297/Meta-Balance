@@ -263,3 +263,17 @@ def accuracy(output, target, topk=(1,)):
 
     return res
 
+
+def get_val_batch(data_loader, iterator):
+    try:
+        task_data = iterator.next()
+    except StopIteration:
+        iterator = iter(data_loader)
+        task_data = iterator.next()
+
+    inputs, labels, young, male = task_data
+    # print(type(labels))
+    # print(labels.shape)
+
+    return inputs, labels, young, male, iterator
+

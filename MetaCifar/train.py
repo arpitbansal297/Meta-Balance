@@ -44,15 +44,16 @@ if __name__ == '__main__':
     parser.add_argument('--dataset_create', action='store_true')
     parser.add_argument('--save', action='store_true')
     parser.add_argument('--seed', default=222, type=int)
-
+    parser.add_argument('--comet_key', default=None, type=str)
 
     args = parser.parse_args()
 
-    experiment = Experiment(api_key='',
+    experiment = Experiment(api_key=args.comet_key,
                             project_name="Meta_Const")
 
 
     ########## prepare dataset ######
+
     if args.dataset_type == 'severe_imbalance':
         fractions = np.ones(10) / 1000
     elif args.dataset_type == 'imbalance':
@@ -65,6 +66,10 @@ if __name__ == '__main__':
 
     trainloader, train_outer_dataloader, testloader = get_inner_simple_loaders(args)
 
+    ############################################
+
+    ######### setting seeds ##############
+
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
     np.random.seed(args.seed)
@@ -73,6 +78,10 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
+    #####################################
+
+
+    ############ setting training regime ###########
 
     model = ResNet18().cuda()
     model = torch.nn.DataParallel(model)
@@ -96,14 +105,13 @@ if __name__ == '__main__':
     save_file_folder = './' + name_of_notebook + '/'
     create_folder(save_file_folder)
 
+    ##################################################
+
     with experiment.train():
 
         for epoch in range(args.start_epoch, args.epochs):
 
             experiment.log_current_epoch(epoch)
-            print(args.inner_lr)
-
-            # scheduler.step(epoch)
             Actual_params = []
             model.train()
 
@@ -179,7 +187,9 @@ if __name__ == '__main__':
                 loss = criterion(outputs, labels)
                 loss_element = criterion_element(outputs, labels)
 
+                # accumulate the loss
                 batch_losses.append(loss)
+
                 for j in range(labels.shape[0]):
                     l = labels[j].item()
                     outer_loss_element[l] += loss_element[j]
@@ -229,8 +239,10 @@ if __name__ == '__main__':
 
             scheduler.step()
 
-            net_distil = copy.deepcopy(model)
-            net_distil = net_distil.cuda()
+            #### creating a copy to remove the doubt of mishandling of weights
+            #### also to make sure, in now way there is effect of testing data on the original model
+            model_test = copy.deepcopy(model)
+            model_test = model_test.cuda()
 
             if args.save:
                 ############# save ###########
@@ -239,21 +251,21 @@ if __name__ == '__main__':
 
                 torch.save({
                     'epoch': epoch,
-                    'model_state_dict': net_distil.state_dict(),
+                    'model_state_dict': model_test.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'scheduler': scheduler.state_dict()
                 }, save_file)
 
 
             model.eval()
-            net_distil.eval()
-
+            model_test.eval()
+            ### find the test accuracy ####
             for i, data in enumerate(testloader, 0):
                 inputs, labels = data
                 inputs, labels = inputs.cuda(), labels.cuda()
                 inputs, labels = Variable(inputs), Variable(labels)
 
-                outputs = net_distil(inputs)
+                outputs = model_test(inputs)
                 loss_element = criterion_element(outputs, labels)
 
                 max_vals, max_indices = torch.max(outputs, 1)
@@ -269,6 +281,7 @@ if __name__ == '__main__':
 
             test_accuracy /= len(testloader)
 
+            ### find the train accuracy after each epoch ####
             model_train_accuracy = 0.0
             for i, data in enumerate(train_outer_dataloader, 0):
                 inputs, labels = data
@@ -290,7 +303,8 @@ if __name__ == '__main__':
 
 
 
-            del net_distil
+            del model_test
+
             ############ end save ##############
             inner_loss = inner_loss / len(train_outer_dataloader)
             inner_accuracy = inner_accuracy / len(train_outer_dataloader)
@@ -346,12 +360,12 @@ if __name__ == '__main__':
                 experiment.log_metric("Loss Total Outer " + str(l), outer_loss_element[l], step=epoch)
                 experiment.log_metric("Loss Total Test " + str(l), test_loss_element[l], step=epoch)
 
-    net_distil = copy.deepcopy(model)
-    net_distil = net_distil.cuda()
+    model_test = copy.deepcopy(model)
+    model_test = model_test.cuda()
     save_file = save_file_folder + str(epoch) + '.pth'
     torch.save({
         'epoch': epoch,
-        'model_state_dict': net_distil.state_dict(),
+        'model_state_dict': model_test.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'scheduler': scheduler.state_dict()
     }, save_file)
