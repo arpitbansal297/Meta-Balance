@@ -2,25 +2,24 @@
 
 
 # MetaCifar
-For the Severe Imabalnce on Cifar10
-
-To create the Severely Imbalanced data
 ```
 cd MetaCifar
+```
+
+Severely Imbalanced Cifar10 data
+```
 python3 train.py 
 --dataset_create 
 --dataset_type 'severe_imbalance' 
 --comet_key 'key' 
 ```
 
-
+Moderately Imbalanced Cifar10 data
 ```
-python3 train.py --dataset_type 'severe_imbalance' --comet_key 'key'
-```
-
-```
-python3 train.py --dataset_create --dataset_type 'imbalance' --comet_key 'key'
-python3 train.py --dataset_type 'imbalance' --comet_key 'key'
+python3 train.py 
+--dataset_create 
+--dataset_type 'imbalance' 
+--comet_key 'key'
 ```
 
 # MetaFace
@@ -36,10 +35,13 @@ python3 train.py
 ```
 
 # MetaCC
-cd MetaCC <br />
-python3 Meta_credit_card_fraud.py <br />
-
+```
+cd MetaCC 
+python3 Meta_credit_card_fraud.py 
+```
 
 # MetaLD
-cd MetaLD <br />
-python3 Meta_loan_default.py <br />
+```
+cd MetaLD 
+python3 Meta_loan_default.py 
+```
