@@ -1,7 +1,11 @@
-# Meta-Balance
+This repository is the official PyTorch implementation of Meta-Balance. Find the paper on arxiv
+
+# MetaBalance: High-Performance Neural Networksfor Class-Imbalanced Data
+
+## Meta-Balance
 
 
-# MetaCifar
+## MetaCifar
 ```
 cd MetaCifar
 ```
@@ -22,7 +26,7 @@ python3 train.py
 --comet_key 'key'
 ```
 
-# MetaFace
+## MetaFace
 ```
 cd MetaFace
 python3 train.py 
@@ -34,13 +38,13 @@ python3 train.py
 --comet_key 'key'
 ```
 
-# MetaCC
+## MetaCC
 ```
 cd MetaCC 
 python3 Meta_credit_card_fraud.py 
 ```
 
-# MetaLD
+## MetaLD
 ```
 cd MetaLD 
 python3 Meta_loan_default.py 
