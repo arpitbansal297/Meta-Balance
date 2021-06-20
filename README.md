@@ -1,6 +1,6 @@
 This repository is the official PyTorch implementation of Meta-Balance. Find the paper on [arxiv](https://arxiv.org/abs/2106.09643)
 
-# MetaBalance: High-Performance Neural Networksfor Class-Imbalanced Data
+# MetaBalance: High-Performance Neural Networks for Class-Imbalanced Data
 
 
 ## MetaCifar
