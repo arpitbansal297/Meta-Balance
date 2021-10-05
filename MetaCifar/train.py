@@ -104,8 +104,6 @@ if __name__ == '__main__':
             fractions = np.ones(10) / 1000
         elif args.dataset_type == 'imbalance':
             fractions = 0.001 + np.random.rand(10) / 100
-        elif args.dataset_type == '50_imbalance':
-            fractions = np.ones(10) / 100
 
         max_class = random.randint(0, 10)
         fractions[max_class] = 1.0
@@ -520,8 +518,6 @@ if __name__ == '__main__':
             fractions = np.ones(10) / 1000
         elif args.dataset_type == 'imbalance':
             fractions = 0.001 + np.random.rand(10) / 100
-        elif args.dataset_type == '50_imbalance':
-            fractions = np.ones(10) / 100
 
         max_class = random.randint(0, 10)
         fractions[max_class] = 1.0
@@ -613,8 +609,6 @@ if __name__ == '__main__':
             fractions = np.ones(10) / 1000
         elif args.dataset_type == 'imbalance':
             fractions = 0.001 + np.random.rand(10) / 100
-        elif args.dataset_type == '50_imbalance':
-            fractions = np.ones(10) / 100
 
         max_class = random.randint(0, 10)
         fractions[max_class] = 1.0

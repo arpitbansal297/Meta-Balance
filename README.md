@@ -16,8 +16,7 @@ Severely Imbalanced Cifar10 data
 ```
 python3 train.py 
 --dataset_create 
---dataset_type 'severe_imbalance' 
---comet_key 'key' 
+--dataset_type 'severe_imbalance'  
 ```
 
 Moderately Imbalanced Cifar10 data
@@ -25,7 +24,6 @@ Moderately Imbalanced Cifar10 data
 python3 train.py 
 --dataset_create 
 --dataset_type 'imbalance' 
---comet_key 'key'
 ```
 
 ## MetaFace
