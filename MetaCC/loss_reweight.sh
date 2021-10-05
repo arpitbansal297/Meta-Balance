@@ -1,0 +1,15 @@
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.01 --loss_reweight_beta 0.999
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.02 --loss_reweight_beta 0.999
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.05 --loss_reweight_beta 0.999
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.1 --loss_reweight_beta 0.999
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.2 --loss_reweight_beta 0.999
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.01 --loss_reweight_beta 0.99
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.02 --loss_reweight_beta 0.99
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.05 --loss_reweight_beta 0.99
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.1 --loss_reweight_beta 0.99
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.2 --loss_reweight_beta 0.99
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.01 --loss_reweight_beta 0.9
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.02 --loss_reweight_beta 0.9
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.05 --loss_reweight_beta 0.9
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.1 --loss_reweight_beta 0.9
+python -W ignore  Meta_credit_card_fraud.py --method loss_reweight --runs 5 --lr 0.2 --loss_reweight_beta 0.9

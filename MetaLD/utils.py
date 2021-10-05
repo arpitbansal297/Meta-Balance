@@ -134,7 +134,7 @@ def getXy(X_train, y_train, method):
     return X_train, y_train
 
 
-def prepare_data(inner_method, outer_method, args):
+def prepare_data_meta_balance(inner_method, outer_method, args):
     df = pd.read_csv(args.data_loc)
     X = df.iloc[:, :-1].drop(columns='purpose').values  # extracting features
     y = df.iloc[:, -1].values  # extracting labels
@@ -157,3 +157,87 @@ def prepare_data(inner_method, outer_method, args):
     test_loader = data_utils.DataLoader(test_dataset, batch_size=15, shuffle=True)
 
     return train_loader, train_loader_outer, test_loader
+
+def prepare_baseline(method, args):
+    df = pd.read_csv(args.data_loc)
+    X = df.iloc[:, :-1].drop(columns='purpose').values  # extracting features
+    y = df.iloc[:, -1].values  # extracting labels
+
+    sc = StandardScaler()
+    X = sc.fit_transform(X)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=args.test_size, random_state=0)
+
+    X_train, y_train = getXy(X_train, y_train, method)
+
+    train_dataset = trainData(torch.FloatTensor(X_train), torch.FloatTensor(y_train))
+    train_loader = data_utils.DataLoader(train_dataset, shuffle=True, batch_size=args.batch_size)
+
+    test_dataset = TensorDataset(torch.FloatTensor(X_test), torch.FloatTensor(y_test))
+    test_loader = data_utils.DataLoader(test_dataset, batch_size=15, shuffle=True)
+
+    return train_loader, test_loader
+
+def prepare_data_meta_weight_net(args):
+    df = pd.read_csv('loan_data.csv')
+    X = df.iloc[:, :-1].drop(columns='purpose')  # extracting features
+    y = df.iloc[:, -1] # extracting labels
+
+    sc = StandardScaler()
+    X = sc.fit_transform(X)
+    X = pd.DataFrame(X)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=args.test_size, random_state=0)
+
+    minority_class = 0
+    majority_class = 1
+    if len(y_train[y_train == 1]) < len(y_train[y_train == 0]):
+        minority_class = 1
+        majority_class = 0
+
+    print(minority_class, len(y_train[y_train == 1]), len(y_train[y_train == 0]))
+
+    minority_len = len(y_train[y_train == minority_class])
+    print(minority_len)
+
+    meta_size = args.meta_size
+    meta_len = int(meta_size * minority_len)
+    print(meta_len)
+
+    X_meta_minor = pd.DataFrame(X_train[y_train == minority_class][0:meta_len])
+    y_meta_minor = pd.DataFrame(y_train[y_train == minority_class][0:meta_len])
+    X_meta_major = pd.DataFrame(X_train[y_train == majority_class][0:meta_len])
+    y_meta_major = pd.DataFrame(y_train[y_train == majority_class][0:meta_len])
+    X_meta = pd.concat([X_meta_major, X_meta_minor])
+    y_meta = pd.concat([y_meta_major, y_meta_minor])
+
+    #print(y_train[y_train == minority_class].index)
+    #print(y_train[y_train == majority_class].index)
+
+    X_train = X_train.drop(X_train[y_train == minority_class][0:meta_len].index)
+    y_train = y_train.drop(y_train[y_train == minority_class][0:meta_len].index)
+    X_train = X_train.drop(X_train[y_train == majority_class][0:meta_len].index)
+    y_train = y_train.drop(y_train[y_train == majority_class][0:meta_len].index)
+
+    #print(y_train[y_train == minority_class].index)
+    #print(y_train[y_train == majority_class].index)
+
+    X_train = X_train.values
+    y_train = y_train.values
+    X_test = X_test.values
+    y_test = y_test.values
+    X_meta = X_meta.values
+    y_meta = y_meta.values
+
+    #X_train, y_train = RandomUnderSampler().fit_resample(X_train, y_train)
+
+    train_dataset = trainData(torch.FloatTensor(X_train), torch.FloatTensor(y_train))
+    train_loader = data_utils.DataLoader(train_dataset, shuffle=True, batch_size=args.batch_size)
+
+    train_metaset = trainData(torch.FloatTensor(X_meta), torch.FloatTensor(y_meta))
+    train_meta_loader= data_utils.DataLoader(train_metaset, shuffle=True, batch_size=args.batch_size)
+
+    test_dataset = TensorDataset(torch.FloatTensor(X_test), torch.FloatTensor(y_test))
+    test_loader = data_utils.DataLoader(test_dataset, batch_size=15, shuffle=True)
+
+    return train_loader, train_meta_loader, test_loader

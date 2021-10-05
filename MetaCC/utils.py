@@ -11,6 +11,7 @@ import pandas as pd
 from torch.utils.data import Dataset, TensorDataset
 import torch.utils.data as data_utils
 
+
 np.random.seed(2)
 
 class trainData(Dataset):
@@ -157,3 +158,151 @@ def prepare_data(inner_method, outer_method, args):
     test_loader = data_utils.DataLoader(test_dataset, batch_size=15, shuffle=True)
 
     return train_loader, train_loader_outer, test_loader
+
+
+def prepare_data_separate(method, args):
+    data = pd.read_csv('creditcard.csv')
+    scaler = StandardScaler()
+    data['NormalizedAmount'] = scaler.fit_transform(data['Amount'].values.reshape(-1, 1))
+    data = data.drop(['Amount', 'Time'], axis=1)
+
+    y = data['Class']
+    X = data.drop(['Class'], axis=1)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+    minority_class = 0
+    majority_class = 1
+
+    if len(y_train[y_train == 1]) < len(y_train[y_train == 0]):
+        minority_class = 1
+        majority_class = 0
+
+    print(minority_class, len(y_train[y_train == 1]), len(y_train[y_train == 0]))
+
+    minority_len = len(y_train[y_train == minority_class])
+    print(minority_len)
+
+    meta_size = args.meta_size
+    meta_len = int(meta_size * minority_len)
+    print(meta_len)
+
+    X_meta_minor = pd.DataFrame(X_train[y_train == minority_class][0:meta_len])
+    y_meta_minor = pd.DataFrame(y_train[y_train == minority_class][0:meta_len])
+    X_meta_major = pd.DataFrame(X_train[y_train == majority_class][0:meta_len])
+    y_meta_major = pd.DataFrame(y_train[y_train == majority_class][0:meta_len])
+    X_meta = pd.concat([X_meta_major, X_meta_minor])
+    y_meta = pd.concat([y_meta_major, y_meta_minor])
+
+    X_train = X_train.drop(X_train[y_train == minority_class][0:meta_len].index)
+    y_train = y_train.drop(y_train[y_train == minority_class][0:meta_len].index)
+    X_train = X_train.drop(X_train[y_train == majority_class][0:meta_len].index)
+    y_train = y_train.drop(y_train[y_train == majority_class][0:meta_len].index)
+
+    X_train = X_train.values
+    y_train = y_train.values
+    X_test = X_test.values
+    y_test = y_test.values
+    X_meta = X_meta.values
+    y_meta = y_meta.values
+
+
+    X_train_inner, y_train_inner = getXy(X_train, y_train, method)
+    X_train_outer, y_train_outer = X_meta, y_meta
+
+    train_dataset = trainData(torch.FloatTensor(X_train_inner), torch.FloatTensor(y_train_inner))
+    train_loader = data_utils.DataLoader(train_dataset, shuffle=True, batch_size=args.batch_size)
+
+    train_dataset_outer = trainData(torch.FloatTensor(X_train_outer), torch.FloatTensor(y_train_outer))
+    train_loader_outer = data_utils.DataLoader(train_dataset_outer, shuffle=True, batch_size=args.outer_batch_size)
+
+    test_dataset = TensorDataset(torch.FloatTensor(X_test), torch.FloatTensor(y_test))
+    test_loader = data_utils.DataLoader(test_dataset, batch_size=15, shuffle=True)
+
+    return train_loader, train_loader_outer, test_loader
+
+
+def prepare_baseline(method, args):
+    data = pd.read_csv('creditcard.csv')
+    scaler = StandardScaler()
+    data['NormalizedAmount'] = scaler.fit_transform(data['Amount'].values.reshape(-1, 1))
+    data = data.drop(['Amount', 'Time'], axis=1)
+
+    y = data['Class'].values
+    X = data.drop(['Class'], axis=1).values
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=args.test_size, random_state=0)
+
+    X_train, y_train = getXy(X_train, y_train, method)
+
+    train_dataset = trainData(torch.FloatTensor(X_train), torch.FloatTensor(y_train))
+    train_loader = data_utils.DataLoader(train_dataset, shuffle=True, batch_size=args.batch_size)
+
+    test_dataset = TensorDataset(torch.FloatTensor(X_test), torch.FloatTensor(y_test))
+    test_loader = data_utils.DataLoader(test_dataset, batch_size=15, shuffle=True)
+
+    return train_loader, test_loader
+
+
+def prepare_data_meta_weight_net(args):
+    data = pd.read_csv('creditcard.csv')
+    scaler = StandardScaler()
+    data['NormalizedAmount'] = scaler.fit_transform(data['Amount'].values.reshape(-1, 1))
+    data = data.drop(['Amount', 'Time'], axis=1)
+
+    y = data['Class']
+    X = data.drop(['Class'], axis=1)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+    minority_class = 0
+    majority_class = 1
+
+    if len(y_train[y_train == 1]) < len(y_train[y_train == 0]):
+        minority_class = 1
+        majority_class = 0
+
+    print(minority_class, len(y_train[y_train == 1]), len(y_train[y_train == 0]))
+
+    minority_len = len(y_train[y_train == minority_class])
+    print(minority_len)
+
+    meta_size = args.meta_size
+    meta_len = int(meta_size * minority_len)
+    print(meta_len)
+
+    X_meta_minor = pd.DataFrame(X_train[y_train == minority_class][0:meta_len])
+    y_meta_minor = pd.DataFrame(y_train[y_train == minority_class][0:meta_len])
+    X_meta_major = pd.DataFrame(X_train[y_train == majority_class][0:meta_len])
+    y_meta_major = pd.DataFrame(y_train[y_train == majority_class][0:meta_len])
+    X_meta = pd.concat([X_meta_major, X_meta_minor])
+    y_meta = pd.concat([y_meta_major, y_meta_minor])
+
+    # print(y_train[y_train == minority_class].index)
+    # print(y_train[y_train == majority_class].index)
+
+    X_train = X_train.drop(X_train[y_train == minority_class][0:meta_len].index)
+    y_train = y_train.drop(y_train[y_train == minority_class][0:meta_len].index)
+    X_train = X_train.drop(X_train[y_train == majority_class][0:meta_len].index)
+    y_train = y_train.drop(y_train[y_train == majority_class][0:meta_len].index)
+
+    # print(y_train[y_train == minority_class].index)
+    # print(y_train[y_train == majority_class].index)
+
+    X_train = X_train.values
+    y_train = y_train.values
+    X_test = X_test.values
+    y_test = y_test.values
+    X_meta = X_meta.values
+    y_meta = y_meta.values
+
+    train_dataset = trainData(torch.FloatTensor(X_train), torch.FloatTensor(y_train))
+    train_loader = data_utils.DataLoader(train_dataset, shuffle=True, batch_size=args.batch_size)
+
+    train_metaset = trainData(torch.FloatTensor(X_meta), torch.FloatTensor(y_meta))
+    train_meta_loader = data_utils.DataLoader(train_metaset, shuffle=True, batch_size=args.batch_size)
+
+    test_dataset = TensorDataset(torch.FloatTensor(X_test), torch.FloatTensor(y_test))
+    test_loader = data_utils.DataLoader(test_dataset, batch_size=15, shuffle=True)
+
+    return train_loader, train_meta_loader, test_loader

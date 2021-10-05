@@ -29,7 +29,7 @@ python3 train.py
 ```
 
 ## MetaFace
-Need to download the CelebA dataset from [this link](https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
+Need to download the CelebA dataset from [this link](https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html). 
 The Training and Testing splits are further explained in the paper.
 ```
 cd MetaFace
